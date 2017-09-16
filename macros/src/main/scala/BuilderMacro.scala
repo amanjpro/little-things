@@ -25,12 +25,10 @@ object BuilderMacroImpl {
         val clazzName = clazz.name.toTypeName
         val builderName = TypeName(s"${clazzName.toString}Builder")
         val (fields, setters) = clazz.impl.body.flatMap {
-          case vdef: ValDef  if(vdef.mods.hasFlag(PARAMACCESSOR) &&
-                                !vdef.mods.hasFlag(PRIVATE) &&
-                                !vdef.mods.hasFlag(PROTECTED)) =>
-            val setterName = TermName(s"set${vdef.name.toTermName.toString.capitalize}")
-            val fieldName = TermName(s"_${vdef.name.toTermName.toString}")
-            val fieldType = vdef.tpt;
+          case vdef: ValDef  if vdef.mods.hasFlag(PARAMACCESSOR) =>
+            val setterName = TermName(s"set${vdef.name.toString.capitalize}")
+            val fieldName = TermName(s"_${vdef.name.toString}")
+            val fieldType = vdef.tpt
             Some((q"private var $fieldName: $fieldType = _",
               q"def ${setterName}(x: $fieldType): $builderName = { self.$fieldName = x; this } "))
           case _                          =>
