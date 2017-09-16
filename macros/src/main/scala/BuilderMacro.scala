@@ -21,7 +21,7 @@ object BuilderMacroImpl {
 
     val inputs = annottees.map(_.tree).toList
     val expandee = inputs match {
-      case (clazz: ClassDef) :: Nil if ! clazz.mods.hasFlag(TRAIT | ABSTRACT) =>
+      case (clazz: ClassDef) :: rest if ! clazz.mods.hasFlag(TRAIT | ABSTRACT) =>
         val clazzName = clazz.name.toTypeName
         val builderName = TypeName(s"${clazzName.toString}Builder")
         val (fields, setters) = clazz.impl.body.flatMap {
@@ -48,22 +48,38 @@ object BuilderMacroImpl {
               )
            """
 
-        val mods   =
-          if(clazz.symbol.isPrivate) Modifiers(FINAL|PRIVATE)
-          else if(clazz.symbol.isProtected) Modifiers(FINAL|PROTECTED)
-          else Modifiers(FINAL)
-
-
-        val result = q"""
-          $clazz
-          object ${clazzName.toTermName} {
-            class $builderName {
+        val builderClass =
+          q"""
+            final class $builderName {
               self =>
               ..$fields
               ..$setters
               $build
             }
-          }
+          """
+
+        val companion = rest match {
+          case (obj: ModuleDef):: _ =>
+            q"""
+               ${obj.mods} object ${obj.name} {
+                  ..${obj.impl.body.filter {
+                    case d: DefDef => d.name != nme.CONSTRUCTOR
+                    case _         => true
+                  }}
+                  $builderClass
+               }
+             """
+          case _ =>
+            q"""
+              object ${clazzName.toTermName} {
+                $builderClass
+              }
+            """
+        }
+
+        val result = q"""
+          $clazz
+          $companion
          """
 
          println(result)
