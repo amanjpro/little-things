@@ -2,7 +2,7 @@ package me.amanj
 
 
 import scala.language.experimental.macros
-import scala.reflect.macros.blackbox.Context
+import scala.reflect.macros.whitebox.Context
 import scala.annotation.{StaticAnnotation, compileTimeOnly}
 
 

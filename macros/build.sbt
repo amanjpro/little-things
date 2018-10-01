@@ -5,7 +5,7 @@ addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.fu
 libraryDependencies := {
   CrossVersion.partialVersion(scalaVersion.value) match {
     case Some((2, 10)) =>
-      libraryDependencies.value :+ ("org.scalamacros" %% "quasiquotes" % "2.0.1")
+      libraryDependencies.value ++ Seq("org.scalamacros" %% "quasiquotes" % "2.0.1")
     case _ =>
       libraryDependencies.value
   }
